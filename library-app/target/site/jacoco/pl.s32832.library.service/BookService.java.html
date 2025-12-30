@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.service</a> &gt; <span class="el_source">BookService.java</span></div><h1>BookService.java</h1><pre class="source lang-java linenums">package pl.s32832.library.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.s32832.library.dto.request.CreateBookRequest;
+import pl.s32832.library.dto.request.UpdateBookRequest;
+import pl.s32832.library.entity.Author;
+import pl.s32832.library.entity.Book;
+import pl.s32832.library.exception.BusinessRuleException;
+import pl.s32832.library.exception.NotFoundException;
+import pl.s32832.library.exception.ValidationException;
+import pl.s32832.library.repository.BookRepository;
+
+import java.util.List;
+
+@Service
+@Transactional
+public class BookService {
+
+    private final BookRepository bookRepository;
+    private final AuthorService authorService;
+
+<span class="fc" id="L23">    public BookService(BookRepository bookRepository, AuthorService authorService) {</span>
+<span class="fc" id="L24">        this.bookRepository = bookRepository;</span>
+<span class="fc" id="L25">        this.authorService = authorService;</span>
+<span class="fc" id="L26">    }</span>
+
+    public Book create(CreateBookRequest req) throws ValidationException {
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        if (bookRepository.findByIsbn(req.getIsbn()).isPresent()) {</span>
+<span class="fc" id="L30">            throw new ValidationException(&quot;ISBN already exists: &quot; + req.getIsbn());</span>
+        }
+<span class="nc" id="L32">        Book book = new Book(req.getTitle(), req.getIsbn(), req.getTotalCopies());</span>
+<span class="nc" id="L33">        return bookRepository.save(book);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Book getById(Long id) throws NotFoundException {
+<span class="fc" id="L38">        return bookRepository.findWithAuthorsById(id)</span>
+<span class="fc" id="L39">                .orElseThrow(() -&gt; new NotFoundException(&quot;Book not found: &quot; + id));</span>
+    }
+
+
+    @Transactional(readOnly = true)
+    public List&lt;Book&gt; getAll() {
+<span class="nc" id="L45">        return bookRepository.findAll();</span>
+    }
+
+
+
+
+    public Book update(Long id, UpdateBookRequest req) throws NotFoundException, BusinessRuleException {
+<span class="fc" id="L52">        Book book = getById(id);</span>
+<span class="fc" id="L53">        int delta = req.getTotalCopies() - book.getTotalCopies();</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (delta &lt; 0) {</span>
+<span class="fc" id="L55">            int newTotal = req.getTotalCopies();</span>
+<span class="fc" id="L56">            int borrowed = book.getTotalCopies() - book.getAvailableCopies();</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (newTotal &lt; borrowed) {</span>
+<span class="fc" id="L58">                throw new BusinessRuleException(&quot;Cannot reduce totalCopies below currently borrowed count&quot;);</span>
+            }
+        }
+<span class="nc" id="L61">        book.setTitle(req.getTitle());</span>
+<span class="nc" id="L62">        book.setTotalCopies(req.getTotalCopies());</span>
+<span class="nc" id="L63">        book.setAvailableCopies(book.getAvailableCopies() + delta);</span>
+<span class="nc" id="L64">        return bookRepository.save(book);</span>
+    }
+
+    public void delete(Long id) throws NotFoundException {
+<span class="nc" id="L68">        Book book = getById(id);</span>
+<span class="nc" id="L69">        bookRepository.delete(book);</span>
+<span class="nc" id="L70">    }</span>
+
+    public Book addAuthor(Long bookId, Long authorId) throws NotFoundException {
+<span class="fc" id="L73">        Book book = getById(bookId);</span>
+<span class="fc" id="L74">        Author author = authorService.getById(authorId);</span>
+<span class="fc" id="L75">        book.getAuthors().add(author);</span>
+<span class="fc" id="L76">        author.getBooks().add(book);</span>
+<span class="fc" id="L77">        return bookRepository.save(book);</span>
+    }
+
+    public Book removeAuthor(Long bookId, Long authorId) throws NotFoundException {
+<span class="fc" id="L81">        Book book = getById(bookId);</span>
+<span class="fc" id="L82">        Author author = authorService.getById(authorId);</span>
+<span class="fc" id="L83">        book.getAuthors().remove(author);</span>
+<span class="fc" id="L84">        author.getBooks().remove(book);</span>
+<span class="fc" id="L85">        return bookRepository.save(book);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

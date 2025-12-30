@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.service</a> &gt; <span class="el_source">ProfileService.java</span></div><h1>ProfileService.java</h1><pre class="source lang-java linenums">package pl.s32832.library.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.s32832.library.dto.request.CreateProfileRequest;
+import pl.s32832.library.dto.request.UpdateProfileRequest;
+import pl.s32832.library.entity.User;
+import pl.s32832.library.entity.UserProfile;
+import pl.s32832.library.exception.BusinessRuleException;
+import pl.s32832.library.exception.NotFoundException;
+import pl.s32832.library.repository.ProfileRepository;
+
+@Service
+@Transactional
+public class ProfileService {
+
+    private final ProfileRepository profileRepository;
+    private final UserService userService;
+
+<span class="fc" id="L20">    public ProfileService(ProfileRepository profileRepository, UserService userService) {</span>
+<span class="fc" id="L21">        this.profileRepository = profileRepository;</span>
+<span class="fc" id="L22">        this.userService = userService;</span>
+<span class="fc" id="L23">    }</span>
+
+    public UserProfile create(Long userId, CreateProfileRequest req) throws NotFoundException, BusinessRuleException {
+<span class="fc" id="L26">        User user = userService.getById(userId);</span>
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">        if (user.getProfile() != null) {</span>
+<span class="fc" id="L28">            throw new BusinessRuleException(&quot;Profile already exists for user: &quot; + userId);</span>
+        }
+<span class="nc" id="L30">        UserProfile profile = new UserProfile(req.getAddress(), req.getPhone(), user);</span>
+<span class="nc" id="L31">        user.setProfile(profile);</span>
+<span class="nc" id="L32">        return profileRepository.save(profile);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfile getById(Long profileId) throws NotFoundException {
+<span class="fc" id="L37">        return profileRepository.findById(profileId)</span>
+<span class="pc" id="L38">                .orElseThrow(() -&gt; new NotFoundException(&quot;Profile not found: &quot; + profileId));</span>
+    }
+
+    public UserProfile update(Long profileId, UpdateProfileRequest req) throws NotFoundException {
+<span class="fc" id="L42">        UserProfile profile = getById(profileId);</span>
+<span class="fc" id="L43">        profile.setAddress(req.getAddress());</span>
+<span class="fc" id="L44">        profile.setPhone(req.getPhone());</span>
+<span class="fc" id="L45">        return profileRepository.save(profile);</span>
+    }
+
+    public void delete(Long profileId) throws NotFoundException {
+<span class="fc" id="L49">        UserProfile profile = getById(profileId);</span>
+<span class="fc" id="L50">        profile.getUser().setProfile(null);</span>
+<span class="fc" id="L51">        profileRepository.delete(profile);</span>
+<span class="fc" id="L52">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

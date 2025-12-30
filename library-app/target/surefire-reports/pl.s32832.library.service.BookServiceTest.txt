@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: pl.s32832.library.service.BookServiceTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in pl.s32832.library.service.BookServiceTest
