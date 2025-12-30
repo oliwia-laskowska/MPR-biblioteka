@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Błąd</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        .box {
+            max-width: 900px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 16px;
+            background: #fafafa;
+        }
+        .code {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            background: #111;
+            color: #fff;
+            font-weight: bold;
+        }
+        .row { margin: 10px 0; }
+        .btns a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            background: white;
+            color: #111;
+        }
+        pre {
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>Ups… wystąpił błąd <span class="code" th:text="${status}">500</span></h1>
+
+    <div class="row">
+        <b>Ścieżka:</b> <span th:text="${path}">/</span>
+    </div>
+
+    <div class="row">
+        <b>Komunikat:</b> <span th:text="${error}">Internal Server Error</span>
+    </div>
+
+    <div class="row" th:if="${message != null and !#strings.isEmpty(message)}">
+        <b>Szczegóły:</b> <span th:text="${message}">message</span>
+    </div>
+
+    <div class="row">
+        <b>Data:</b> <span th:text="${timestamp}">timestamp</span>
+    </div>
+
+    <h2>Co możesz zrobić?</h2>
+    <div class="btns">
+        <a th:href="@{/web}">Panel GUI</a>
+        <a th:href="@{/swagger-ui.html}">Swagger</a>
+        <a th:href="@{/actuator/health}">Health</a>
+        <a href="javascript:history.back()">Wróć</a>
+    </div>
+
+
+</div>
+
+</body>
+</html>

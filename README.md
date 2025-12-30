@@ -255,6 +255,22 @@ open target/site/jacoco/index.html
 8. Sprawdź, że `availableCopies` wróciło do poprawnej wartości: `GET /api/books/{id}`
 
 ---
+## Dodatkowe
+1. (2)Aplikacja dostarcza funkcjonalności do badania swojego stanu (czy działa, jakie żądania przetworzyła, jakim kodem zakończyły się żądania)
+* http://localhost:8080/actuator/health
+* http://localhost:8080/actuator/metrics
+* http://localhost:8080/actuator/metrics/http.server.requests
+
+2. (9)Aplikacja powinna być przygotowana do obsługi unchecked exception w jakiś generyczny sposób. 
+* w ApiExceptionHandler.java
+@ExceptionHandler(Exception.class)
+public ResponseEntity<ErrorResponse> handleOther(Exception ex, HttpServletRequest req) { ... }
+
+3. (5)Utworzenie GUI w Angular lub Thymeleaf
+* http://localhost:8080/web
+
+
+---
 
 ## Autor
 

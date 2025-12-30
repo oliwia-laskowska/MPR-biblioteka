@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Użytkownicy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root{--bg:#f7f7fb;--card:#fff;--text:#1c1c1c;--muted:#666;--border:#e6e6e6;--shadow:0 6px 24px rgba(0,0,0,.06);--radius:14px;--danger:#b00020}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+        .container{max-width:980px;margin:0 auto;padding:28px 18px 40px}
+        .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+        h1{margin:0;font-size:26px}
+        .subtitle{margin:6px 0 0;color:var(--muted);font-size:14px}
+        .card{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:var(--radius);padding:16px}
+        .actions{display:flex;gap:10px;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;gap:10px;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:12px;padding:10px 12px;transition:transform .05s ease,box-shadow .15s ease,border-color .15s ease}
+        .btn:hover{border-color:#cfcfcf;box-shadow:0 10px 24px rgba(0,0,0,.08);transform:translateY(-1px)}
+        table{border-collapse:collapse;width:100%;margin-top:12px}
+        th,td{border-bottom:1px solid var(--border);padding:12px 10px;text-align:left;vertical-align:top}
+        th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+        tr:hover td{background:#fcfcff}
+        .pill{display:inline-block;padding:5px 10px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted);background:#fff}
+        .pill.yes{border-color:#cfe4d0;color:#1f6b2a;background:#f3fbf4}
+        .pill.no{border-color:#f2c3c8;color:#7a0014;background:#fff5f6}
+        .danger{background:#fff;border:1px solid #f2c3c8;color:var(--danger);border-radius:12px;padding:8px 12px;cursor:pointer}
+        .danger:hover{box-shadow:0 10px 24px rgba(176,0,32,.10)}
+        .empty{padding:12px 0;color:var(--muted)}
+        .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;color:var(--muted)}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="topbar">
+        <div>
+            <h1>👤 Użytkownicy</h1>
+            <p class="subtitle">Lista użytkowników. Profil użytkownika to relacja 1:1 (User ↔ UserProfile).</p>
+        </div>
+        <div class="actions">
+            <a class="btn" th:href="@{/web}">← Start</a>
+            <a class="btn" th:href="@{/web/users/new}">+ Dodaj użytkownika</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="empty" th:if="${users == null || users.isEmpty()}">
+            Brak użytkowników w bazie. Dodaj pierwszego użytkownika.
+        </div>
+
+        <table th:if="${users != null && !users.isEmpty()}">
+            <thead>
+            <tr>
+                <th style="width:80px;">ID</th>
+                <th>Imię i nazwisko</th>
+                <th>Email</th>
+                <th style="width:140px;">Profil</th>
+                <th style="width:220px;">Akcje</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${users}">
+                <td th:text="${u.id}">1</td>
+                <td><b th:text="${u.fullName}">Jan Kowalski</b></td>
+                <td><span class="mono" th:text="${u.email}">mail</span></td>
+                <td>
+                    <span class="pill yes" th:if="${u.profile != null}">TAK</span>
+                    <span class="pill no" th:if="${u.profile == null}">NIE</span>
+                </td>
+                <td>
+                    <a class="btn" th:href="@{/web/users/{id}(id=${u.id})}">Szczegóły</a>
+
+                    <form th:action="@{/web/users/{id}/delete(id=${u.id})}" method="post" style="display:inline;">
+                        <button class="danger" type="submit" onclick="return confirm('Usunąć użytkownika?')">
+                            Usuń
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

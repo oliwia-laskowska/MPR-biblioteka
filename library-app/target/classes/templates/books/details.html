@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Szczegóły książki</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg: #f7f7fb;
+            --card: #ffffff;
+            --text: #1c1c1c;
+            --muted: #666;
+            --border: #e6e6e6;
+            --shadow: 0 6px 24px rgba(0,0,0,0.06);
+            --radius: 14px;
+            --danger: #b00020;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 18px 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        h1 { margin: 0; font-size: 26px; }
+        .subtitle { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            transition: transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: #cfcfcf;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+
+        .danger {
+            background: #fff;
+            border: 1px solid #f2c3c8;
+            color: var(--danger);
+            border-radius: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .danger:hover { box-shadow: 0 10px 24px rgba(176,0,32,0.10); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 14px;
+        }
+
+        .span-6 { grid-column: span 6; }
+        .span-12 { grid-column: span 12; }
+
+        @media (max-width: 820px) {
+            .span-6, .span-12 { grid-column: span 12; }
+        }
+
+        .kv {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .kv li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .kv li:last-child { border-bottom: none; }
+
+        .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .v { font-size: 16px; font-weight: 600; margin-top: 4px; }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border);
+            padding: 12px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        tr:hover td { background: #fcfcff; }
+
+        select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            min-width: 280px;
+            background: #fff;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #cfcfcf;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.04);
+        }
+
+        button.primary {
+            border: 1px solid var(--border);
+            background: #111;
+            color: #fff;
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.primary:hover { opacity: 0.95; }
+
+        .empty {
+            color: var(--muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="topbar">
+        <div>
+            <h1>📖 Szczegóły książki</h1>
+            <p class="subtitle">Zarządzaj relacją wielu-do-wielu (książka ↔ autorzy).</p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn" th:href="@{/web/books}">← Lista książek</a>
+
+            <form th:action="@{/web/books/{id}/delete(id=${book.id})}" method="post" style="display:inline;">
+                <button class="danger" type="submit" onclick="return confirm('Na pewno usunąć książkę?')">
+                    Usuń książkę
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid">
+
+        <!-- Dane książki -->
+        <section class="card span-6">
+            <h2 style="margin:0 0 12px;">Dane książki</h2>
+
+            <ul class="kv">
+                <li>
+                    <div class="k">ID</div>
+                    <div class="v" th:text="${book.id}">1</div>
+                </li>
+                <li>
+                    <div class="k">Tytuł</div>
+                    <div class="v" th:text="${book.title}">Tytuł</div>
+                </li>
+                <li>
+                    <div class="k">ISBN</div>
+                    <div class="v" th:text="${book.isbn}">ISBN</div>
+                </li>
+                <li>
+                    <div class="k">Łącznie egzemplarzy</div>
+                    <div class="v" th:text="${book.totalCopies}">1</div>
+                </li>
+                <li>
+                    <div class="k">Dostępne egzemplarze</div>
+                    <div class="v" th:text="${book.availableCopies}">1</div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Dodawanie autora -->
+        <section class="card span-6">
+            <h2 style="margin:0 0 12px;">Dodaj autora do książki</h2>
+            <p style="margin:0 0 14px; color:var(--muted); font-size:14px;">
+                Wybierz autora i dodaj relację. (Many-to-Many)
+            </p>
+
+            <form th:action="@{/web/books/{id}/authors(id=${book.id})}" method="post">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <select name="authorId" required>
+                        <option value="" disabled selected>Wybierz autora</option>
+                        <option th:each="a : ${allAuthors}"
+                                th:value="${a.id}"
+                                th:text="${a.name}">
+                        </option>
+                    </select>
+
+                    <button class="primary" type="submit">Dodaj autora</button>
+                </div>
+            </form>
+
+            <div class="empty" th:if="${allAuthors == null || allAuthors.isEmpty()}">
+                Brak autorów w bazie — dodaj autora w zakładce “Autorzy”.
+            </div>
+        </section>
+
+        <!-- Lista autorów -->
+        <section class="card span-12">
+            <h2 style="margin:0 0 12px;">Autorzy przypisani do książki</h2>
+
+            <div class="empty" th:if="${book.authors == null || book.authors.isEmpty()}">
+                Ta książka nie ma jeszcze przypisanych autorów.
+            </div>
+
+            <table th:if="${book.authors != null && !book.authors.isEmpty()}">
+                <thead>
+                <tr>
+                    <th style="width: 90px;">ID</th>
+                    <th>Autor</th>
+                    <th style="width: 200px;">Akcje</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${book.authors}">
+                    <td th:text="${a.id}">1</td>
+                    <td th:text="${a.name}">Autor</td>
+                    <td>
+                        <form th:action="@{/web/books/{bookId}/authors/{authorId}/remove(bookId=${book.id}, authorId=${a.id})}"
+                              method="post" style="display:inline;">
+                            <button class="danger" type="submit"
+                                    onclick="return confirm('Usunąć autora z tej książki?')">
+                                Usuń autora
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+
+</div>
+
+</body>
+</html>

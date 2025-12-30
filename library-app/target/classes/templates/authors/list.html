@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Autorzy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg: #f7f7fb;
+            --card: #ffffff;
+            --text: #1c1c1c;
+            --muted: #666;
+            --border: #e6e6e6;
+            --shadow: 0 6px 24px rgba(0,0,0,0.06);
+            --radius: 14px;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 18px 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            transition: transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: #cfcfcf;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border);
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        th {
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        tr:hover td {
+            background: #fcfcff;
+        }
+
+        .empty {
+            padding: 12px 0;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="topbar">
+        <div>
+            <h1 class="title">👤 Autorzy</h1>
+            <p class="subtitle">Lista autorów zapisanych w systemie.</p>
+        </div>
+
+        <div class="actions">
+            <a class="btn" th:href="@{/web}">
+                ← Start
+            </a>
+            <a class="btn" th:href="@{/web/authors/new}">
+                + Dodaj autora
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+
+        <div th:if="${authors == null || authors.isEmpty()}" class="empty">
+            Brak autorów w bazie. Dodaj pierwszego autora klikając „Dodaj autora”.
+        </div>
+
+        <table th:if="${authors != null && !authors.isEmpty()}">
+            <thead>
+            <tr>
+                <th style="width: 90px;">ID</th>
+                <th>Imię i nazwisko</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${authors}">
+                <td th:text="${a.id}">1</td>
+                <td th:text="${a.name}">Autor</td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

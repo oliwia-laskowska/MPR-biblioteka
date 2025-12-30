@@ -35,6 +35,7 @@ pl/s32832/library/dto/request/CreateProfileRequest.class
 pl/s32832/library/service/UserService.class
 pl/s32832/library/controller/AuthorController.class
 pl/s32832/library/repository/ProfileRepository.class
+pl/s32832/library/controller/WebController.class
 pl/s32832/library/dto/response/BookResponse.class
 pl/s32832/library/exception/ErrorResponse.class
 pl/s32832/library/controller/LoanController.class

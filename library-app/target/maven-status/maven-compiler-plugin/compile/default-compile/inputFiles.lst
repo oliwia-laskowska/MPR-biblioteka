@@ -5,6 +5,7 @@
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/controller/LoanController.java
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/controller/ProfileController.java
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/controller/UserController.java
+/Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/controller/WebController.java
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/dto/request/CreateAuthorRequest.java
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/dto/request/CreateBookRequest.java
 /Users/oliwia/Downloads/library-app/src/main/java/pl/s32832/library/dto/request/CreateLoanRequest.java

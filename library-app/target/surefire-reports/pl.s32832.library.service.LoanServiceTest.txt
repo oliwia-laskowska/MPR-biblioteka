@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: pl.s32832.library.service.LoanServiceTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -- in pl.s32832.library.service.LoanServiceTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.096 s -- in pl.s32832.library.service.LoanServiceTest

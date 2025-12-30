@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nowe wypożyczenie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root{
+            --bg:#f7f7fb; --card:#fff; --text:#1c1c1c; --muted:#666;
+            --border:#e6e6e6; --shadow:0 6px 24px rgba(0,0,0,.06);
+            --radius:14px; --danger:#b00020;
+        }
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+        .container{max-width:820px;margin:0 auto;padding:28px 18px 40px}
+        .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+        h1{margin:0;font-size:26px}
+        .subtitle{margin:6px 0 0;color:var(--muted);font-size:14px}
+        .card{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:var(--radius);padding:16px}
+        .btn{display:inline-flex;align-items:center;gap:10px;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--text);
+            border-radius:12px;padding:10px 12px;transition:transform .05s ease,box-shadow .15s ease,border-color .15s ease}
+        .btn:hover{border-color:#cfcfcf;box-shadow:0 10px 24px rgba(0,0,0,.08);transform:translateY(-1px)}
+        .row{margin:12px 0}
+        label{display:block;margin-bottom:6px;font-weight:600}
+        select{width:100%;max-width:620px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#fff}
+        select:focus{outline:none;border-color:#cfcfcf;box-shadow:0 0 0 4px rgba(0,0,0,.04)}
+        .error{color:var(--danger);margin:10px 0;font-size:13px}
+        .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        button.primary{border:1px solid var(--border);background:#111;color:#fff;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+        button.primary:hover{opacity:.95}
+        .hint{color:var(--muted);font-size:13px;margin-top:8px}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="topbar">
+        <div>
+            <h1>➕ Nowe wypożyczenie</h1>
+            <p class="subtitle">Wybierz użytkownika i książkę. System zmniejszy dostępne egzemplarze.</p>
+        </div>
+        <a class="btn" th:href="@{/web/loans}">← Lista wypożyczeń</a>
+    </div>
+
+    <div class="card">
+        <div class="error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/web/loans}" th:object="${loan}" method="post">
+
+            <div class="row">
+                <label for="userId">Użytkownik</label>
+                <select id="userId" th:field="*{userId}" required>
+                    <option value="" disabled selected>Wybierz użytkownika</option>
+                    <option th:each="u : ${users}"
+                            th:value="${u.id}"
+                            th:text="${u.fullName + ' (' + u.email + ')'}">
+                    </option>
+                </select>
+                <div class="error" th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}"></div>
+            </div>
+
+            <div class="row">
+                <label for="bookId">Książka</label>
+                <select id="bookId" th:field="*{bookId}" required>
+                    <option value="" disabled selected>Wybierz książkę</option>
+                    <option th:each="b : ${books}"
+                            th:value="${b.id}"
+                            th:text="${b.title + ' [ISBN: ' + b.isbn + '] — dostępne: ' + b.availableCopies}">
+                    </option>
+                </select>
+                <div class="error" th:if="${#fields.hasErrors('bookId')}" th:errors="*{bookId}"></div>
+                <div class="hint">Jeśli dostępne = 0, serwis zwróci błąd (BusinessRuleException).</div>
+            </div>
+
+            <div class="actions">
+                <button class="primary" type="submit">Wypożycz</button>
+                <a class="btn" th:href="@{/web/loans}">Anuluj</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
