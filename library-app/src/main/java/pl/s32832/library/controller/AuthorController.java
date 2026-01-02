@@ -12,37 +12,61 @@ import pl.s32832.library.service.AuthorService;
 
 import java.util.List;
 
+/**
+ * REST Controller dla encji Author.
+ * Obsługuje CRUD.
+ */
 @RestController
 @RequestMapping("/api/authors")
 public class AuthorController {
 
+    // Serwis trzyma logikę biznesową (controller tylko przyjmuje/oddaje dane).
     private final AuthorService authorService;
 
     public AuthorController(AuthorService authorService) {
         this.authorService = authorService;
     }
 
+    /**
+     * Dodanie autora i walidacja.
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AuthorResponse create(@Valid @RequestBody CreateAuthorRequest req) {
         return AuthorMapper.toResponse(authorService.create(req));
     }
 
+    /**
+     * Pobranie autora po ID.
+     * Jeśli nie istnieje -> NotFoundException.
+     */
     @GetMapping("/{id}")
     public AuthorResponse get(@PathVariable Long id) throws NotFoundException {
         return AuthorMapper.toResponse(authorService.getById(id));
     }
 
+    /**
+     * Pobranie listy wszystkich autorów.
+     */
     @GetMapping
     public List<AuthorResponse> getAll() {
-        return authorService.getAll().stream().map(AuthorMapper::toResponse).toList();
+        return authorService.getAll().stream()
+                .map(AuthorMapper::toResponse)
+                .toList();
     }
 
+    /**
+     * Aktualizacja autora po ID.
+     */
     @PutMapping("/{id}")
-    public AuthorResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAuthorRequest req) throws NotFoundException {
+    public AuthorResponse update(@PathVariable Long id,
+                                 @Valid @RequestBody UpdateAuthorRequest req) throws NotFoundException {
         return AuthorMapper.toResponse(authorService.update(id, req));
     }
 
+    /**
+     * Usunięcie autora po ID.
+     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) throws NotFoundException {

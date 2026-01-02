@@ -14,6 +14,10 @@ import pl.s32832.library.service.BookService;
 
 import java.util.List;
 
+/**
+ * REST Controller dla encji Book.
+ * Udostępnia CRUD + operacje na relacji Book <-> Author (many-to-many).
+ */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
@@ -24,41 +28,73 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    /**
+     * Dodanie nowej książki.
+     * @Valid uruchamia walidację pól z CreateBookRequest.
+     * Może rzucić ValidationException np. gdy ISBN już istnieje.
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookResponse create(@Valid @RequestBody CreateBookRequest req) throws ValidationException {
         return BookMapper.toResponse(bookService.create(req));
     }
 
+    /**
+     * Pobranie książki po ID.
+     * Jeśli nie ma takiej książki -> NotFoundException.
+     */
     @GetMapping("/{id}")
     public BookResponse get(@PathVariable Long id) throws NotFoundException {
         return BookMapper.toResponse(bookService.getById(id));
     }
 
+    /**
+     * Pobranie listy wszystkich książek.
+     */
     @GetMapping
     public List<BookResponse> getAll() {
-        return bookService.getAll().stream().map(BookMapper::toResponse).toList();
+        return bookService.getAll().stream()
+                .map(BookMapper::toResponse)
+                .toList();
     }
 
+    /**
+     * Aktualizacja książki.
+     * Może rzucić BusinessRuleException (np. próba zmniejszenia totalCopies poniżej liczby wypożyczeń).
+     */
     @PutMapping("/{id}")
-    public BookResponse update(@PathVariable Long id, @Valid @RequestBody UpdateBookRequest req)
+    public BookResponse update(@PathVariable Long id,
+                               @Valid @RequestBody UpdateBookRequest req)
             throws NotFoundException, BusinessRuleException {
         return BookMapper.toResponse(bookService.update(id, req));
     }
 
+    /**
+     * Usunięcie książki po ID.
+     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) throws NotFoundException {
         bookService.delete(id);
     }
 
+    /**
+     * Dodanie autora do książki (relacja many-to-many).
+     * Endpoint: POST /api/books/{bookId}/authors/{authorId}
+     */
     @PostMapping("/{bookId}/authors/{authorId}")
-    public BookResponse addAuthor(@PathVariable Long bookId, @PathVariable Long authorId) throws NotFoundException {
+    public BookResponse addAuthor(@PathVariable Long bookId,
+                                  @PathVariable Long authorId) throws NotFoundException {
         return BookMapper.toResponse(bookService.addAuthor(bookId, authorId));
     }
 
+    /**
+     * Usunięcie autora z książki (relacja many-to-many).
+     * Endpoint: DELETE /api/books/{bookId}/authors/{authorId}
+     */
     @DeleteMapping("/{bookId}/authors/{authorId}")
-    public BookResponse removeAuthor(@PathVariable Long bookId, @PathVariable Long authorId) throws NotFoundException {
+    public BookResponse removeAuthor(@PathVariable Long bookId,
+                                     @PathVariable Long authorId) throws NotFoundException {
         return BookMapper.toResponse(bookService.removeAuthor(bookId, authorId));
     }
 }

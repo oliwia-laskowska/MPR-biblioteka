@@ -9,33 +9,53 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 
+/**
+ * Globalny handler wyjątków dla całej aplikacji.
+ */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    /**
+     * Obsługa błędów typu "nie znaleziono zasobu".
+     */
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), req.getRequestURI());
     }
 
+    /**
+     * Obsługa błędów biznesowych i walidacyjnych (custom checked exceptions).
+     */
     @ExceptionHandler({ValidationException.class, BusinessRuleException.class})
     public ResponseEntity<ErrorResponse> handleValidation(Exception ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), req.getRequestURI());
     }
 
+    /**
+     * Obsługa walidacji Bean Validation (np. @NotBlank, @Email, @Min...).
+     * Wyciągamy pierwszą wiadomość błędu i zwracamy w ErrorResponse.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleBeanValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(fe -> fe.getField() + " " + fe.getDefaultMessage())
                 .orElse("Validation error");
+
         return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", msg, req.getRequestURI());
     }
 
+    /**
+     * Generyczna obsługa wszystkich pozostałych wyjątków (unchecked i inne).
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleOther(Exception ex, HttpServletRequest req) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", ex.getMessage(), req.getRequestURI());
     }
 
+    /**
+     * Wspólna metoda budująca odpowiedź błędu w formacie JSON.
+     */
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String error, String message, String path) {
         return ResponseEntity.status(status)
                 .body(new ErrorResponse(Instant.now(), status.value(), error, message, path));

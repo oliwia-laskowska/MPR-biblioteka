@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApiExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.exception</a> &gt; <span class="el_source">ApiExceptionHandler.java</span></div><h1>ApiExceptionHandler.java</h1><pre class="source lang-java linenums">package pl.s32832.library.exception;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.Instant;
+
+/**
+ * Globalny handler wyjątków dla całej aplikacji.
+ */
+@RestControllerAdvice
+<span class="nc" id="L16">public class ApiExceptionHandler {</span>
+
+    /**
+     * Obsługa błędów typu &quot;nie znaleziono zasobu&quot;.
+     */
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNotFound(NotFoundException ex, HttpServletRequest req) {
+<span class="nc" id="L23">        return build(HttpStatus.NOT_FOUND, &quot;NOT_FOUND&quot;, ex.getMessage(), req.getRequestURI());</span>
+    }
+
+    /**
+     * Obsługa błędów biznesowych i walidacyjnych (custom checked exceptions).
+     */
+    @ExceptionHandler({ValidationException.class, BusinessRuleException.class})
+    public ResponseEntity&lt;ErrorResponse&gt; handleValidation(Exception ex, HttpServletRequest req) {
+<span class="nc" id="L31">        return build(HttpStatus.BAD_REQUEST, &quot;BAD_REQUEST&quot;, ex.getMessage(), req.getRequestURI());</span>
+    }
+
+    /**
+     * Obsługa walidacji Bean Validation (np. @NotBlank, @Email, @Min...).
+     * Wyciągamy pierwszą wiadomość błędu i zwracamy w ErrorResponse.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleBeanValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
+<span class="nc" id="L40">        String msg = ex.getBindingResult().getFieldErrors().stream()</span>
+<span class="nc" id="L41">                .findFirst()</span>
+<span class="nc" id="L42">                .map(fe -&gt; fe.getField() + &quot; &quot; + fe.getDefaultMessage())</span>
+<span class="nc" id="L43">                .orElse(&quot;Validation error&quot;);</span>
+
+<span class="nc" id="L45">        return build(HttpStatus.BAD_REQUEST, &quot;BAD_REQUEST&quot;, msg, req.getRequestURI());</span>
+    }
+
+    /**
+     * Generyczna obsługa wszystkich pozostałych wyjątków (unchecked i inne).
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleOther(Exception ex, HttpServletRequest req) {
+<span class="nc" id="L53">        return build(HttpStatus.INTERNAL_SERVER_ERROR, &quot;INTERNAL_SERVER_ERROR&quot;, ex.getMessage(), req.getRequestURI());</span>
+    }
+
+    /**
+     * Wspólna metoda budująca odpowiedź błędu w formacie JSON.
+     */
+    private ResponseEntity&lt;ErrorResponse&gt; build(HttpStatus status, String error, String message, String path) {
+<span class="nc" id="L60">        return ResponseEntity.status(status)</span>
+<span class="nc" id="L61">                .body(new ErrorResponse(Instant.now(), status.value(), error, message, path));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

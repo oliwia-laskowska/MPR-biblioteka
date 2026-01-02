@@ -11,6 +11,14 @@ import pl.s32832.library.exception.NotFoundException;
 import pl.s32832.library.mapper.ProfileMapper;
 import pl.s32832.library.service.ProfileService;
 
+/**
+ * REST Controller dla profilu użytkownika.
+ * Profil jest w relacji 1:1 z User.
+ *
+ * Endpointy są pod /api:
+ * - tworzenie profilu jest pod użytkownikiem: /users/{userId}/profile
+ * - operacje na profilu: /profiles/{profileId}
+ */
 @RestController
 @RequestMapping("/api")
 public class ProfileController {
@@ -21,6 +29,14 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
+    /**
+     * Utworzenie profilu dla konkretnego użytkownika.
+     * Endpoint: POST /api/users/{userId}/profile
+     *
+     * Może rzucić:
+     * - NotFoundException (gdy user nie istnieje)
+     * - BusinessRuleException (gdy user ma już profil)
+     */
     @PostMapping("/users/{userId}/profile")
     @ResponseStatus(HttpStatus.CREATED)
     public ProfileResponse create(@PathVariable("userId") Long userId,
@@ -29,18 +45,30 @@ public class ProfileController {
         return ProfileMapper.toResponse(profileService.create(userId, req));
     }
 
-
+    /**
+     * Pobranie profilu po ID.
+     * Endpoint: GET /api/profiles/{profileId}
+     */
     @GetMapping("/profiles/{profileId}")
     public ProfileResponse get(@PathVariable Long profileId) throws NotFoundException {
         return ProfileMapper.toResponse(profileService.getById(profileId));
     }
 
+    /**
+     * Aktualizacja profilu po ID.
+     * Endpoint: PUT /api/profiles/{profileId}
+     */
     @PutMapping("/profiles/{profileId}")
-    public ProfileResponse update(@PathVariable Long profileId, @Valid @RequestBody UpdateProfileRequest req)
+    public ProfileResponse update(@PathVariable Long profileId,
+                                  @Valid @RequestBody UpdateProfileRequest req)
             throws NotFoundException {
         return ProfileMapper.toResponse(profileService.update(profileId, req));
     }
 
+    /**
+     * Usunięcie profilu po ID (204 NO_CONTENT).
+     * Endpoint: DELETE /api/profiles/{profileId}
+     */
     @DeleteMapping("/profiles/{profileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long profileId) throws NotFoundException {

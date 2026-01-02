@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoanService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.service</a> &gt; <span class="el_source">LoanService.java</span></div><h1>LoanService.java</h1><pre class="source lang-java linenums">package pl.s32832.library.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.s32832.library.dto.request.CreateLoanRequest;
+import pl.s32832.library.entity.Book;
+import pl.s32832.library.entity.Loan;
+import pl.s32832.library.entity.User;
+import pl.s32832.library.exception.BusinessRuleException;
+import pl.s32832.library.exception.NotFoundException;
+import pl.s32832.library.exception.ValidationException;
+import pl.s32832.library.repository.LoanRepository;
+import pl.s32832.library.util.DateTimeProvider;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Serwis obsługujący wypożyczenia (Loan).
+ *
+ * Najważniejsze zasady:
+ * - można wypożyczyć tylko jeśli książka jest dostępna (availableCopies &gt; 0)
+ * - oddanie ustawia returnDate i zwiększa dostępność książki
+ * - usunięcie wypożyczenia przywraca dostępność, jeśli wypożyczenie było aktywne
+ */
+@Service
+@Transactional
+public class LoanService {
+
+    // domyślny czas wypożyczenia (14 dni)
+    private static final int DEFAULT_LOAN_DAYS = 14;
+
+    private final LoanRepository loanRepository;
+    private final UserService userService;
+    private final BookService bookService;
+    private final DateTimeProvider dateTimeProvider;
+
+    public LoanService(LoanRepository loanRepository,
+                       UserService userService,
+                       BookService bookService,
+<span class="fc" id="L41">                       DateTimeProvider dateTimeProvider) {</span>
+<span class="fc" id="L42">        this.loanRepository = loanRepository;</span>
+<span class="fc" id="L43">        this.userService = userService;</span>
+<span class="fc" id="L44">        this.bookService = bookService;</span>
+<span class="fc" id="L45">        this.dateTimeProvider = dateTimeProvider;</span>
+<span class="fc" id="L46">    }</span>
+
+    /**
+     * Tworzy nowe wypożyczenie.
+     * 1) pobieramy użytkownika i książkę (walidacja istnienia -&gt; NotFoundException)
+     * 2) sprawdzamy reguły biznesowe (czy książka jest dostępna)
+     * 3) zmniejszamy dostępność książki
+     * 4) tworzymy Loan z loanDate i dueDate (dziś + 14 dni)
+     * 5) zapis przez repozytorium (ORM)
+     */
+    public Loan create(CreateLoanRequest req)
+            throws NotFoundException, BusinessRuleException, ValidationException {
+
+<span class="fc" id="L59">        User user = userService.getById(req.getUserId());</span>
+<span class="fc" id="L60">        Book book = bookService.getById(req.getBookId());</span>
+
+        // Nie wypożyczysz, jeśli brak dostępnych egzemplarzy
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (book.getAvailableCopies() &lt;= 0) {</span>
+<span class="fc" id="L64">            throw new BusinessRuleException(&quot;Book is not available for loan&quot;);</span>
+        }
+
+        // Przykładowa walidacja email
+<span class="pc bpc" id="L68" title="1 of 4 branches missed.">        if (user.getEmail() == null || user.getEmail().isBlank()) {</span>
+<span class="fc" id="L69">            throw new ValidationException(&quot;User email invalid&quot;);</span>
+        }
+
+        // Aktualizacja stanu książki (w tej samej transakcji)
+<span class="fc" id="L73">        book.setAvailableCopies(book.getAvailableCopies() - 1);</span>
+
+<span class="fc" id="L75">        LocalDate today = dateTimeProvider.today();</span>
+<span class="fc" id="L76">        Loan loan = new Loan(user, book, today, today.plusDays(DEFAULT_LOAN_DAYS));</span>
+
+<span class="fc" id="L78">        return loanRepository.save(loan);</span>
+    }
+
+    /**
+     * Pobiera wypożyczenie po ID.
+     */
+    @Transactional(readOnly = true)
+    public Loan getById(Long id) throws NotFoundException {
+<span class="fc" id="L86">        return loanRepository.findById(id)</span>
+<span class="fc" id="L87">                .orElseThrow(() -&gt; new NotFoundException(&quot;Loan not found: &quot; + id));</span>
+    }
+
+    /**
+     * Pobiera wszystkie wypożyczenia.
+     */
+    @Transactional(readOnly = true)
+    public List&lt;Loan&gt; getAll() {
+<span class="nc" id="L95">        return loanRepository.findAll();</span>
+    }
+
+    /**
+     * Oddaje wypożyczenie:
+     * - jeśli było już oddane -&gt; BusinessRuleException
+     * - ustawia returnDate
+     * - zwiększa dostępność książki
+     */
+    public Loan returnLoan(Long id) throws NotFoundException, BusinessRuleException {
+<span class="fc" id="L105">        Loan loan = getById(id);</span>
+
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (loan.getReturnDate() != null) {</span>
+<span class="fc" id="L108">            throw new BusinessRuleException(&quot;Loan already returned&quot;);</span>
+        }
+
+<span class="fc" id="L111">        loan.setReturnDate(dateTimeProvider.today());</span>
+
+<span class="fc" id="L113">        Book book = loan.getBook();</span>
+<span class="fc" id="L114">        book.setAvailableCopies(book.getAvailableCopies() + 1);</span>
+
+<span class="fc" id="L116">        return loanRepository.save(loan);</span>
+    }
+
+    /**
+     * Usuwa wypożyczenie.
+     * Jeśli wypożyczenie było aktywne (nie oddane),
+     * to przywracamy dostępność książki.
+     */
+    public void delete(Long id) throws NotFoundException {
+<span class="fc" id="L125">        Loan loan = getById(id);</span>
+
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (loan.getReturnDate() == null) {</span>
+<span class="fc" id="L128">            Book book = loan.getBook();</span>
+<span class="fc" id="L129">            book.setAvailableCopies(book.getAvailableCopies() + 1);</span>
+        }
+
+<span class="fc" id="L132">        loanRepository.delete(loan);</span>
+<span class="fc" id="L133">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

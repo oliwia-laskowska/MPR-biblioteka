@@ -1,0 +1,17 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+library-app,pl.s32832.library.entity,UserProfile,10,29,0,0,4,10,3,6,3,6
+library-app,pl.s32832.library.entity,Loan,25,31,0,0,8,11,7,6,7,6
+library-app,pl.s32832.library.entity,Author,11,21,0,0,3,7,2,4,2,4
+library-app,pl.s32832.library.entity,User,18,31,0,0,5,10,4,6,4,6
+library-app,pl.s32832.library.entity,Book,23,52,0,0,5,16,4,9,4,9
+library-app,pl.s32832.library.exception,ApiExceptionHandler,68,0,0,0,11,0,7,0,7,0
+library-app,pl.s32832.library.exception,BusinessRuleException,0,4,0,0,0,2,0,1,0,1
+library-app,pl.s32832.library.exception,ErrorResponse,18,0,0,0,1,0,1,0,1,0
+library-app,pl.s32832.library.exception,NotFoundException,0,4,0,0,0,2,0,1,0,1
+library-app,pl.s32832.library.exception,ValidationException,0,4,0,0,0,2,0,1,0,1
+library-app,pl.s32832.library.util,DateTimeProvider,5,0,0,0,2,0,2,0,2,0
+library-app,pl.s32832.library.service,LoanService,4,141,1,9,1,31,2,10,1,6
+library-app,pl.s32832.library.service,UserService,4,72,0,2,1,15,1,7,1,6
+library-app,pl.s32832.library.service,ProfileService,0,87,0,2,0,20,0,7,0,6
+library-app,pl.s32832.library.service,BookService,4,162,1,5,1,34,2,10,1,8
+library-app,pl.s32832.library.service,AuthorService,0,58,0,0,0,13,0,7,0,7

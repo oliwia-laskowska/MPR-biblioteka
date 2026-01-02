@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.service</a> &gt; <span class="el_source">ProfileService.java</span></div><h1>ProfileService.java</h1><pre class="source lang-java linenums">package pl.s32832.library.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.s32832.library.dto.request.CreateProfileRequest;
+import pl.s32832.library.dto.request.UpdateProfileRequest;
+import pl.s32832.library.entity.User;
+import pl.s32832.library.entity.UserProfile;
+import pl.s32832.library.exception.BusinessRuleException;
+import pl.s32832.library.exception.NotFoundException;
+import pl.s32832.library.repository.ProfileRepository;
+
+/**
+ * Serwis odpowiedzialny za profile użytkownika (UserProfile).
+ *
+ * Relacja 1:1:
+ * - jeden użytkownik może mieć maksymalnie jeden profil
+ * - profil zawsze należy do konkretnego użytkownika
+ */
+@Service
+@Transactional
+public class ProfileService {
+
+    private final ProfileRepository profileRepository;
+    private final UserService userService;
+
+<span class="fc" id="L27">    public ProfileService(ProfileRepository profileRepository, UserService userService) {</span>
+<span class="fc" id="L28">        this.profileRepository = profileRepository;</span>
+<span class="fc" id="L29">        this.userService = userService;</span>
+<span class="fc" id="L30">    }</span>
+
+    /**
+     * Tworzy profil dla użytkownika.
+     *
+     * Użytkownik może mieć tylko jeden profil.
+     * Dlatego przed utworzeniem sprawdzamy, czy profil już istnieje.
+     */
+    public UserProfile create(Long userId, CreateProfileRequest req)
+            throws NotFoundException, BusinessRuleException {
+
+        // pobieramy użytkownika (jak nie istnieje -&gt; NotFoundException)
+<span class="fc" id="L42">        User user = userService.getById(userId);</span>
+
+        // tylko 1 profil na użytkownika
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (user.getProfile() != null) {</span>
+<span class="fc" id="L46">            throw new BusinessRuleException(&quot;Profile already exists for user: &quot; + userId);</span>
+        }
+
+        // tworzymy nową encję profilu i przypisujemy do użytkownika
+<span class="fc" id="L50">        UserProfile profile = new UserProfile(req.getAddress(), req.getPhone(), user);</span>
+<span class="fc" id="L51">        user.setProfile(profile);</span>
+
+        // zapis przez Spring Data (ORM)
+<span class="fc" id="L54">        return profileRepository.save(profile);</span>
+    }
+
+    /**
+     * Pobiera profil po ID.
+     */
+    @Transactional(readOnly = true)
+    public UserProfile getById(Long profileId) throws NotFoundException {
+<span class="fc" id="L62">        return profileRepository.findById(profileId)</span>
+<span class="fc" id="L63">                .orElseThrow(() -&gt; new NotFoundException(&quot;Profile not found: &quot; + profileId));</span>
+    }
+
+    /**
+     * Aktualizuje dane profilu.
+     */
+    public UserProfile update(Long profileId, UpdateProfileRequest req) throws NotFoundException {
+<span class="fc" id="L70">        UserProfile profile = getById(profileId);</span>
+
+<span class="fc" id="L72">        profile.setAddress(req.getAddress());</span>
+<span class="fc" id="L73">        profile.setPhone(req.getPhone());</span>
+
+<span class="fc" id="L75">        return profileRepository.save(profile);</span>
+    }
+
+    /**
+     * Usuwa profil:
+     * - odpinamy profil od użytkownika (user.profile = null),
+     * - kasujemy rekord profilu z bazy.
+     */
+    public void delete(Long profileId) throws NotFoundException {
+<span class="fc" id="L84">        UserProfile profile = getById(profileId);</span>
+
+        // odpinamy relację 1:1 po stronie User
+<span class="fc" id="L87">        profile.getUser().setProfile(null);</span>
+
+<span class="fc" id="L89">        profileRepository.delete(profile);</span>
+<span class="fc" id="L90">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

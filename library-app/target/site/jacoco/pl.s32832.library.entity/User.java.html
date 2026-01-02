@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>User.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.entity</a> &gt; <span class="el_source">User.java</span></div><h1>User.java</h1><pre class="source lang-java linenums">package pl.s32832.library.entity;
+
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Encja User = użytkownik biblioteki.
+ *
+ * Tabela: users
+ * Relacje:
+ * - 1:1 z UserProfile
+ * - 1:N z Loan (wiele wypożyczeń jednego użytkownika)
+ */
+@Entity
+@Table(name = &quot;users&quot;)
+public class User {
+
+    /** Klucz główny użytkownika. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String fullName;
+
+    /**
+     * Relacja 1:1 — profil użytkownika.
+     *
+     * mappedBy=&quot;user&quot; =&gt; właścicielem relacji jest pole &quot;user&quot; w encji UserProfile.
+     * cascade=ALL =&gt; zapis/usunięcie usera zapisuje/usuwa też profil.
+     * orphanRemoval=true =&gt; jeśli odłączysz profil od użytkownika, profil zostanie usunięty z bazy.
+     * fetch=LAZY =&gt; profil nie jest pobierany automatycznie (dopiero przy użyciu getProfile()).
+     */
+    @OneToOne(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserProfile profile;
+
+    /**
+     * Relacja 1:N — wypożyczenia użytkownika.
+     *
+     * mappedBy=&quot;user&quot; =&gt; pole &quot;user&quot; w encji Loan wskazuje właściciela relacji.
+     * cascade=ALL =&gt; zapis/usunięcie usera działa też na wypożyczenia.
+     * orphanRemoval=true =&gt; usunięcie wypożyczenia z listy spowoduje usunięcie go z bazy.
+     */
+<span class="pc" id="L49">    @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)</span>
+    private List&lt;Loan&gt; loans = new ArrayList&lt;&gt;();
+
+<span class="nc" id="L52">    public User() {</span>
+<span class="nc" id="L53">    }</span>
+
+<span class="fc" id="L55">    public User(String email, String fullName) {</span>
+<span class="fc" id="L56">        this.email = email;</span>
+<span class="fc" id="L57">        this.fullName = fullName;</span>
+<span class="fc" id="L58">    }</span>
+
+<span class="nc" id="L60">    public Long getId() { return id; }</span>
+
+<span class="fc" id="L62">    public String getEmail() { return email; }</span>
+<span class="nc" id="L63">    public void setEmail(String email) { this.email = email; }</span>
+
+<span class="fc" id="L65">    public String getFullName() { return fullName; }</span>
+<span class="fc" id="L66">    public void setFullName(String fullName) { this.fullName = fullName; }</span>
+
+<span class="fc" id="L68">    public UserProfile getProfile() { return profile; }</span>
+<span class="fc" id="L69">    public void setProfile(UserProfile profile) { this.profile = profile; }</span>
+
+<span class="nc" id="L71">    public List&lt;Loan&gt; getLoans() { return loans; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

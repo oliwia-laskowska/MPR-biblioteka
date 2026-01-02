@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-app</a> &gt; <a href="index.source.html" class="el_package">pl.s32832.library.service</a> &gt; <span class="el_source">BookService.java</span></div><h1>BookService.java</h1><pre class="source lang-java linenums">package pl.s32832.library.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.s32832.library.dto.request.CreateBookRequest;
+import pl.s32832.library.dto.request.UpdateBookRequest;
+import pl.s32832.library.entity.Author;
+import pl.s32832.library.entity.Book;
+import pl.s32832.library.exception.BusinessRuleException;
+import pl.s32832.library.exception.NotFoundException;
+import pl.s32832.library.exception.ValidationException;
+import pl.s32832.library.repository.BookRepository;
+
+import java.util.List;
+
+/**
+ * Serwis obsługujący logikę biznesową książek (Book).
+ *
+ * - Kontroler wywołuje metody tego serwisu
+ * - Serwis waliduje reguły biznesowe (np. ISBN unikalny, liczba egzemplarzy)
+ * - Zapis/odczyt danych odbywa się przez BookRepository
+ */
+@Service
+@Transactional
+public class BookService {
+
+    private final BookRepository bookRepository;
+    private final AuthorService authorService;
+
+<span class="fc" id="L30">    public BookService(BookRepository bookRepository, AuthorService authorService) {</span>
+<span class="fc" id="L31">        this.bookRepository = bookRepository;</span>
+<span class="fc" id="L32">        this.authorService = authorService;</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * Tworzy nową książkę.
+     * Walidacja biznesowa: ISBN musi być unikalny.
+     */
+    public Book create(CreateBookRequest req) throws ValidationException {
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (bookRepository.findByIsbn(req.getIsbn()).isPresent()) {</span>
+<span class="fc" id="L41">            throw new ValidationException(&quot;ISBN already exists: &quot; + req.getIsbn());</span>
+        }
+
+        // Tworzymy encję Book na podstawie requestu i zapisujemy do bazy przez ORM
+<span class="fc" id="L45">        Book book = new Book(req.getTitle(), req.getIsbn(), req.getTotalCopies());</span>
+<span class="fc" id="L46">        return bookRepository.save(book);</span>
+    }
+
+    /**
+     * Pobiera książkę po ID.
+     * Używamy specjalnej metody repozytorium z EntityGraph,
+     * żeby od razu pobrać autorów (ManyToMany)
+     * readOnly = true -&gt; optymalizacja dla odczytu.
+     */
+    @Transactional(readOnly = true)
+    public Book getById(Long id) throws NotFoundException {
+<span class="fc" id="L57">        return bookRepository.findWithAuthorsById(id)</span>
+<span class="fc" id="L58">                .orElseThrow(() -&gt; new NotFoundException(&quot;Book not found: &quot; + id));</span>
+    }
+
+    /**
+     * Pobiera wszystkie książki.
+     * W repozytorium findAll() też jest oznaczone EntityGraph -&gt; autorzy będą dociągnięci.
+     */
+    @Transactional(readOnly = true)
+    public List&lt;Book&gt; getAll() {
+<span class="nc" id="L67">        return bookRepository.findAll();</span>
+    }
+
+    /**
+     * Aktualizuje książkę.
+     *
+     * Najważniejsza reguła biznesowa:
+     * - nie można zmniejszyć totalCopies poniżej liczby wypożyczonych egzemplarzy.
+     * borrowed = totalCopies - availableCopies
+     */
+    public Book update(Long id, UpdateBookRequest req) throws NotFoundException, BusinessRuleException {
+<span class="fc" id="L78">        Book book = getById(id);</span>
+
+        // delta pokazuje o ile zmienia się całkowita liczba egzemplarzy
+<span class="fc" id="L81">        int delta = req.getTotalCopies() - book.getTotalCopies();</span>
+
+        // Jeśli zmniejszamy totalCopies, sprawdzamy czy nie spadnie poniżej wypożyczonych
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (delta &lt; 0) {</span>
+<span class="fc" id="L85">            int newTotal = req.getTotalCopies();</span>
+<span class="fc" id="L86">            int borrowed = book.getTotalCopies() - book.getAvailableCopies();</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            if (newTotal &lt; borrowed) {</span>
+<span class="fc" id="L88">                throw new BusinessRuleException(&quot;Cannot reduce totalCopies below currently borrowed count&quot;);</span>
+            }
+        }
+
+        // Aktualizacja pól encji
+<span class="fc" id="L93">        book.setTitle(req.getTitle());</span>
+<span class="fc" id="L94">        book.setTotalCopies(req.getTotalCopies());</span>
+
+        // availableCopies też muszą się zmienić o tę samą deltę
+        // np. total 5 -&gt; 7 =&gt; available +2
+        // np. total 5 -&gt; 3 =&gt; available -2 (ale tylko jeśli reguła biznesowa pozwala)
+<span class="fc" id="L99">        book.setAvailableCopies(book.getAvailableCopies() + delta);</span>
+
+<span class="fc" id="L101">        return bookRepository.save(book);</span>
+    }
+
+    /**
+     * Usuwa książkę po ID.
+     * Jeśli nie istnieje -&gt; NotFoundException.
+     */
+    public void delete(Long id) throws NotFoundException {
+<span class="fc" id="L109">        Book book = getById(id);</span>
+<span class="fc" id="L110">        bookRepository.delete(book);</span>
+<span class="fc" id="L111">    }</span>
+
+    /**
+     * Dodaje autora do książki (relacja ManyToMany).
+     * Uzupełniamy obie strony relacji:
+     * - book.authors
+     * - author.books
+     */
+    public Book addAuthor(Long bookId, Long authorId) throws NotFoundException {
+<span class="fc" id="L120">        Book book = getById(bookId);</span>
+<span class="fc" id="L121">        Author author = authorService.getById(authorId);</span>
+
+<span class="fc" id="L123">        book.getAuthors().add(author);</span>
+<span class="fc" id="L124">        author.getBooks().add(book);</span>
+
+<span class="fc" id="L126">        return bookRepository.save(book);</span>
+    }
+
+    /**
+     * Usuwa autora z książki (relacja ManyToMany).
+     * Również aktualizujemy obie strony relacji.
+     */
+    public Book removeAuthor(Long bookId, Long authorId) throws NotFoundException {
+<span class="fc" id="L134">        Book book = getById(bookId);</span>
+<span class="fc" id="L135">        Author author = authorService.getById(authorId);</span>
+
+<span class="fc" id="L137">        book.getAuthors().remove(author);</span>
+<span class="fc" id="L138">        author.getBooks().remove(book);</span>
+
+<span class="fc" id="L140">        return bookRepository.save(book);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
