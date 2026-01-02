@@ -31,6 +31,7 @@ Rozwinięcie:
 8. Aplikacja posiada zdefiniowane przynajmniej 2 role użytkownika po których różnicowany jest dostęp do endpointów
 9. Aplikacja powinna być przygotowana do obsługi unchecked exception w jakiś generyczny sposób. 
 
+
 Proponowane tematy aplikacji:
     - biblioteka 
     - warsztat (serwis)
